@@ -1,0 +1,244 @@
+:root {
+  --forest: #111d17;
+  --forest-2: #19291f;
+  --moss: #2f4a3c;
+  --cream: #f1ead9;
+  --cream-dim: #c4bfae;
+  --leaf: #7fd39a;
+  --line: rgba(241, 234, 217, 0.14);
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  background: var(--forest);
+  color: var(--cream);
+}
+body {
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+a {
+  color: var(--leaf);
+}
+img {
+  max-width: 100%;
+}
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block: 18px;
+}
+.brand {
+  font-weight: 600;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cream);
+  text-decoration: none;
+}
+.brand b {
+  color: var(--leaf);
+  font-size: 20px;
+  line-height: 1;
+}
+.navcta {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--forest);
+  background: var(--leaf);
+  border-radius: 999px;
+  padding: 9px 16px;
+  text-decoration: none;
+}
+.navcta:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid var(--cream);
+  outline-offset: 2px;
+}
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--leaf);
+  font-weight: 700;
+}
+h1 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(34px, 5.6vw, 64px);
+  line-height: 1.02;
+  margin: 8px 0 10px;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.sub {
+  color: var(--cream-dim);
+  margin: 0;
+  max-width: 52ch;
+  font-size: 17px;
+}
+.head {
+  padding-block: 8px 0;
+  max-width: 760px;
+}
+
+.ways {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding-block: 44px 8px;
+}
+.way {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.way h3 {
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+.way p {
+  margin: 0;
+  color: var(--cream-dim);
+  font-size: 15px;
+  max-width: 34ch;
+}
+.way code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--leaf);
+  font-size: 14px;
+}
+@media (max-width: 760px) {
+  .ways {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cta {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 32px;
+  align-items: start;
+  padding-block: 48px 64px;
+}
+.cta h2 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.1;
+  margin: 0 0 12px;
+  text-wrap: balance;
+}
+.lede {
+  color: var(--cream-dim);
+  margin: 0;
+  max-width: 44ch;
+}
+.form {
+  background: var(--forest-2);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  display: grid;
+  gap: 14px;
+}
+.form label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.form input,
+.form select {
+  width: 100%;
+  margin-top: 6px;
+  font: inherit;
+  color: var(--cream);
+  background: var(--forest);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 11px 12px;
+}
+.form input:focus-visible,
+.form select:focus-visible {
+  outline: 2px solid var(--leaf);
+  outline-offset: 1px;
+}
+.btn {
+  font: inherit;
+  font-weight: 700;
+  background: var(--leaf);
+  color: var(--forest);
+  border: 0;
+  border-radius: 999px;
+  padding: 13px 18px;
+  cursor: pointer;
+}
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}
+.ok {
+  font-size: 14px;
+  color: var(--leaf);
+  margin: 0;
+}
+.err {
+  font-size: 14px;
+  color: #f0cf8a;
+  margin: 0;
+}
+.fine {
+  font-size: 12.5px;
+  color: var(--cream-dim);
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .cta {
+    grid-template-columns: 1fr;
+  }
+}
+footer.foot {
+  border-top: 1px solid var(--line);
+  padding-block: 20px 28px;
+  color: var(--cream-dim);
+  font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  justify-content: space-between;
+}
+.prose {
+  max-width: 68ch;
+  padding-block: 24px 64px;
+}
+.prose h1 {
+  font-size: clamp(32px, 4.5vw, 48px);
+}
+.prose h2 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 24px;
+  margin: 32px 0 8px;
+}
+.prose p,
+.prose li {
+  color: var(--cream-dim);
+}
