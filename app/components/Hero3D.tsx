@@ -23,6 +23,28 @@ const LEAVE_MS = 280;
 const TOUR_IDLE_MS = 8000;
 const TOUR_STEP_MS = 4200;
 
+/** The hero copy that shares the stage on wide screens (see app/page.tsx). */
+function heroCopy(stage: HTMLElement) {
+  return stage.closest("section")?.querySelector<HTMLElement>("[data-hero-copy]") ?? null;
+}
+
+/**
+ * Boxes of the hero copy, relative to the stage, so the card steers around the words. These
+ * are the same boxes that take the pointer (see .heroCopy in globals.css), so a card placed
+ * clear of them is always clickable.
+ */
+function copyRects(stage: HTMLElement, sr: DOMRect) {
+  const copy = heroCopy(stage);
+  if (!copy) return [];
+  const out: { left: number; right: number; top: number; bottom: number }[] = [];
+  copy.querySelectorAll<HTMLElement>("[data-hero-avoid]").forEach((el) => {
+    const r = el.getBoundingClientRect();
+    if (!r.width || r.bottom < sr.top) return;
+    out.push({ left: r.left - sr.left - 12, right: r.right - sr.left + 12, top: r.top - sr.top - 10, bottom: r.bottom - sr.top + 10 });
+  });
+  return out;
+}
+
 export default function Hero3D() {
   const stageRef = useRef<HTMLDivElement>(null);
   const cardPosRef = useRef<HTMLDivElement>(null);
@@ -46,6 +68,7 @@ export default function Hero3D() {
   const leaveTimer = useRef(0);
   const candidate = useRef<ItemId | null>(null);
   const lastInput = useRef(0);
+  const lastPick = useRef<{ x: number; y: number; id: ItemId } | null>(null);
 
   // leaveTimer.current is reset to 0 when cleared so a new one can start.
   const cancelLeave = () => {
@@ -97,7 +120,8 @@ export default function Hero3D() {
 
   /* Media queries */
   useEffect(() => {
-    const n = window.matchMedia("(max-width: 760px)");
+    // Below 1100px the hero copy sits above the stage, so the card opens below the stage.
+    const n = window.matchMedia("(max-width: 1099px)");
     const r = window.matchMedia("(prefers-reduced-motion: reduce)");
     const sync = () => {
       setNarrowUI(n.matches);
@@ -125,7 +149,15 @@ export default function Hero3D() {
         ]);
         const { HeroEngine } = await import("./scene/engine");
         if (cancelled) return;
-        engineRef.current = new HeroEngine(stage, { mode: "page", reducedMotion: reduce, onFirstFrame: () => setReady(true) });
+        engineRef.current = new HeroEngine(stage, {
+          mode: "page",
+          reducedMotion: reduce,
+          onFirstFrame: () => setReady(true),
+          reserveTop: () => {
+            const copy = heroCopy(stage);
+            return copy ? copy.getBoundingClientRect().bottom - stage.getBoundingClientRect().top : 0;
+          },
+        });
         engineRef.current.setParallax(true);
         // Test hook for the acceptance tests: only when the URL has ?debug.
         if (location.search.includes("debug")) (window as unknown as { __hero: HeroEngine }).__hero = engineRef.current;
@@ -284,37 +316,54 @@ export default function Hero3D() {
       }
       const pw = pos.offsetWidth,
         ph = pos.offsetHeight;
+      const sr = stage.getBoundingClientRect();
+      const overlap = (l: number, t: number, o: { left: number; right: number; top: number; bottom: number }) =>
+        Math.max(0, Math.min(l + pw, o.right) - Math.max(l, o.left)) * Math.max(0, Math.min(t + ph, o.bottom) - Math.max(t, o.top));
       const others = ITEMS.filter((i) => i.id !== shown).map((i) => eng.box(i.id));
-      const area = (l: number, t: number) =>
-        others.reduce((sum, o) => {
-          const w = Math.max(0, Math.min(l + pw, o.right) - Math.max(l, o.left));
-          const hh = Math.max(0, Math.min(t + ph, o.bottom) - Math.max(t, o.top));
-          return sum + w * hh;
-        }, 0);
+      // Hero copy that shares the stage: the card must never sit on the words or buttons.
+      const words = copyRects(stage, sr);
       const clampX = (v: number) => Math.max(16, Math.min(W - pw - 16, v));
       const clampY = (v: number) => Math.max(16, Math.min(H - ph - 84, v));
       const aboveY = clampY(me.anchorY - ph - 42);
       const sideY = clampY(me.anchorY - ph * 0.45);
-      // Candidates in order of preference; the one covering the least of other items wins.
-      const cands: { x: number; y: number; side: "above" | "left" | "right" }[] = [
-        { x: clampX(me.anchorX - pw / 2), y: aboveY, side: "above" },
-        { x: clampX(me.anchorX - pw + 48), y: aboveY, side: "above" },
-        { x: clampX(me.anchorX - 48), y: aboveY, side: "above" },
-        { x: clampX(me.right + 28), y: sideY, side: "right" },
-        { x: clampX(me.left - 28 - pw), y: sideY, side: "left" },
+      const xs = [
+        clampX(me.anchorX - pw / 2),
+        clampX(me.anchorX - pw + 48),
+        clampX(me.anchorX - 48),
+        clampX(me.right + 28),
+        clampX(me.left - 28 - pw),
+        clampX(W - pw - 24),
       ];
-      let pick = cands[0],
-        bestA = Infinity;
-      for (const c of cands) {
+      const ys = [aboveY, sideY];
+      for (let v = 16; v <= H - ph - 84; v += 24) ys.push(v);
+      const cost = (c: { x: number; y: number }) => {
         // Never cover the item itself.
         const selfHit = c.x < me.right && c.x + pw > me.left && c.y + ph > me.anchorY + 24 && c.y < me.bottom;
-        const a = area(c.x, c.y) + (selfHit ? 1e9 : 0);
-        if (a < bestA - 1) {
-          bestA = a;
-          pick = c;
+        if (selfHit) return Infinity;
+        const items = others.reduce((sum, o) => sum + overlap(c.x, c.y, o), 0);
+        const text = words.reduce((sum, o) => sum + overlap(c.x, c.y, o), 0);
+        // Prefer staying close to the item the card describes.
+        const nx = Math.max(c.x - me.anchorX, me.anchorX - (c.x + pw), 0);
+        const ny = Math.max(c.y - me.anchorY, me.anchorY - (c.y + ph), 0);
+        return items + text * 50 + Math.hypot(nx, ny) * 30;
+      };
+      let pick = { x: xs[0], y: aboveY },
+        bestA = Infinity;
+      for (const y of ys)
+        for (const x of xs) {
+          const a = cost({ x, y });
+          if (a < bestA - 1) {
+            bestA = a;
+            pick = { x, y };
+          }
         }
-      }
-      const { x, y, side } = pick;
+      // Hold the last spot unless the new one is clearly better, so the card never twitches.
+      const prev = lastPick.current;
+      if (prev && prev.id === shown && cost(prev) <= bestA * 1.15 + 2500) pick = prev;
+      lastPick.current = { ...pick, id: shown };
+      const side: "above" | "left" | "right" =
+        pick.y + ph <= me.anchorY - 8 ? "above" : pick.x >= me.anchorX ? "right" : "left";
+      const { x, y } = pick;
       pos.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
       const ex = side === "above" ? Math.max(x + 28, Math.min(x + pw - 28, me.anchorX)) : side === "right" ? x : x + pw;
       const ey = side === "above" ? y + ph : Math.max(y + 28, Math.min(y + ph - 28, me.anchorY));
@@ -375,7 +424,6 @@ export default function Hero3D() {
         aria-label="3D view of IntroBand on a sneaker, backpack, fidget, teddy bear and headphones, each on its own display stand"
         data-mode={mode}
       >
-        <div className={styles.sun} aria-hidden="true" />
         <div className={`${styles.poster} ${ready ? styles.posterGone : ""}`} aria-hidden="true">
           {ITEMS.map((it, i) => (
             <span key={it.id} style={{ left: `${10 + i * 16}%` }} />
@@ -415,11 +463,13 @@ export default function Hero3D() {
           ))}
         </div>
       </div>
-      <p className={styles.hint}>
-        {mode === "touring" ? "Taking a quick tour. " : ""}
-        {narrowUI ? "Tap anything to lift it and see how it works." : "Hover to look closer. Click to keep it open."}
-      </p>
-      {narrowUI && card}
+      <div className={styles.below}>
+        <p className={styles.hint}>
+          {mode === "touring" ? "Taking a quick tour. " : ""}
+          {narrowUI ? "Tap anything to lift it and see how it works." : "Hover to look closer. Click to keep it open."}
+        </p>
+        {narrowUI && card}
+      </div>
     </div>
   );
 }

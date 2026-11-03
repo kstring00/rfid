@@ -8,16 +8,34 @@ export default function Home() {
     <div className="wrap">
       <SiteHeader />
       <main>
-        <section className="head">
-          <div className="eyebrow">For autistic and neurodivergent kids</div>
-          <h1>One profile. Everything they love.</h1>
-          <p className="sub">
-            Not a wrist kid? No problem. IntroBand goes on the shoe, bag, toy or headphones your child never leaves behind, and anyone can tap or
-            scan to meet them.
-          </p>
+        <section className="hero" aria-labelledby="hero-title">
+          <div className="heroGlow" aria-hidden="true" />
+          <div className="heroCopy" data-hero-copy>
+            <p className="eyebrow heroEyebrow" data-hero-avoid>Introducing IntroBand</p>
+            <h1 id="hero-title" className="heroTitle" data-hero-avoid>
+              Let the things they <em>love</em> <span className="heroLine">introduce them.</span>
+            </h1>
+            <div className="heroRow">
+              <p className="sub heroSub" data-hero-avoid>
+                A little tap opens a world of personality, favorite things, and helpful ways to connect. One introduction, wherever they go.
+              </p>
+              <div className="heroCtas">
+                <a className="btn btnLg" href="#waitlist" data-hero-avoid>
+                  Get early access
+                </a>
+                <a className="btnGhost" href="#how" data-hero-avoid>
+                  See how it works
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M8 3v10M3.5 8.5 8 13l4.5-4.5" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className="heroShow">
+            <Hero3D />
+          </div>
         </section>
-
-        <Hero3D />
 
         <section className="ways" aria-labelledby="ways-title">
           <h2 id="ways-title" className="eyebrow sectionLabel">
@@ -39,7 +57,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="steps" aria-labelledby="how-title">
+        <section className="steps" id="how" aria-labelledby="how-title">
           <h2 id="how-title" className="eyebrow sectionLabel">
             How it works
           </h2>

@@ -16,6 +16,14 @@
 * {
   box-sizing: border-box;
 }
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
 html,
 body {
   margin: 0;
@@ -45,7 +53,7 @@ img {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding-block: 18px;
+  padding-block: 14px;
 }
 .brand {
   font-weight: 600;
@@ -97,16 +105,249 @@ h1 {
   max-width: 52ch;
   font-size: 17px;
 }
-.head {
-  padding-block: 8px 0;
-  max-width: 760px;
+
+/* ---------- Hero: copy and showcase share one warm surface ---------- */
+.hero {
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-top: 2px;
+  border-radius: 32px;
+  background:
+    radial-gradient(70% 55% at 50% 108%, #edd2ae 0%, rgba(237, 210, 174, 0) 70%),
+    linear-gradient(180deg, #fcf3e4 0%, #f9ead3 38%, #f5e0c2 72%, #f0d6b4 100%);
+  box-shadow: inset 0 0 0 1px rgba(120, 84, 40, 0.08);
+}
+.heroGlow {
+  position: absolute;
+  z-index: -1;
+  width: min(760px, 62%);
+  aspect-ratio: 1;
+  right: -6%;
+  top: -22%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 228, 178, 0.95) 0%, rgba(255, 214, 150, 0.4) 38%, rgba(255, 214, 150, 0) 70%);
+  pointer-events: none;
+  animation: heroGlow 10s ease-in-out infinite;
+}
+@keyframes heroGlow {
+  50% {
+    transform: scale(1.05) translateY(2%);
+    opacity: 0.85;
+  }
+}
+.heroCopy {
+  position: relative;
+  z-index: 2;
+  padding: clamp(28px, 4.2vw, 56px) clamp(22px, 4.4vw, 60px) 0;
+}
+.heroEyebrow {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.heroEyebrow::before {
+  content: "";
+  width: 22px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+.heroTitle {
+  font-size: clamp(40px, min(6.2vw, 10.5vh), 86px);
+  line-height: 1;
+  letter-spacing: -0.025em;
+  margin: 14px 0 0;
+}
+@media (min-width: 761px) {
+  .heroLine {
+    display: block;
+  }
+}
+@media (min-width: 1100px) {
+  /* Wide screens: the copy sits in the open sky of the 3D stage, the items line up beneath it. */
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto clamp(270px, 27vw, 350px);
+  }
+  .heroCopy {
+    grid-area: 1 / 1;
+    z-index: 2;
+    pointer-events: none;
+  }
+  /* Only the words and buttons take the pointer, and their boxes hug the text, so the 3D
+     stage and its item card stay usable everywhere else. */
+  .heroCopy [data-hero-avoid] {
+    pointer-events: auto;
+    width: fit-content;
+  }
+  .heroShow {
+    grid-area: 1 / 1 / 3 / 2;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+}
+
+.heroTitle em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--sage);
+  letter-spacing: -0.01em;
+}
+.heroRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(18px, 2vw, 26px);
+  margin-top: clamp(16px, 2vw, 24px);
+}
+.heroSub {
+  max-width: 40ch;
+  text-wrap: pretty;
+  font-size: clamp(16px, 1.3vw, 18.5px);
+  line-height: 1.55;
+}
+.heroCtas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 22px;
+}
+.btn.btnLg {
+  display: inline-flex;
+  align-items: center;
+  padding: 15px 26px;
+  font-size: 16px;
+  text-decoration: none;
+  box-shadow: 0 14px 30px -14px rgba(35, 79, 54, 0.6);
+  transition: background 0.2s var(--ease-out), transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+}
+.btn.btnLg:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 34px -14px rgba(35, 79, 54, 0.65);
+}
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  text-decoration: none;
+  padding: 6px 2px;
+  border-bottom: 1.5px solid rgba(31, 46, 38, 0.25);
+  transition: border-color 0.2s var(--ease-out);
+}
+.btnGhost svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s var(--ease-out);
+}
+.btnGhost:hover {
+  border-color: var(--ink);
+}
+.btnGhost:hover svg {
+  transform: translateY(2px);
+}
+.btnGhost:focus-visible {
+  outline: 3px solid var(--sun-deep);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Gentle staggered entrance for the copy */
+.heroCopy > * {
+  animation: heroIn 0.7s var(--ease-out) both;
+}
+.heroCopy > :nth-child(2) {
+  animation-delay: 70ms;
+}
+.heroCopy > :nth-child(3) {
+  animation-delay: 160ms;
+}
+@keyframes heroIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Short laptop screens: tighter copy so the products still land above the fold. */
+@media (min-width: 1100px) and (max-height: 820px) {
+  .heroCopy {
+    padding-top: 36px;
+  }
+  .heroTitle {
+    font-size: clamp(40px, min(6vw, 9.2vh), 86px);
+  }
+  .heroSub {
+    max-width: 58ch;
+  }
+  .heroRow {
+    gap: 18px;
+  }
+  .hero {
+    grid-template-rows: auto clamp(250px, min(27vw, 100svh - 400px), 350px);
+  }
+}
+@media (max-width: 760px) {
+  .hero {
+    border-radius: 24px;
+  }
+  .heroGlow {
+    width: 110%;
+    right: -40%;
+    top: -12%;
+  }
+  .heroTitle {
+    letter-spacing: -0.02em;
+  }
+  .heroRow {
+    gap: 20px;
+  }
+  .heroCtas {
+    width: 100%;
+    gap: 12px 20px;
+  }
+}
+@media (max-width: 420px) {
+  .btn.btnLg {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .btnGhost {
+    margin-inline: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heroGlow,
+  .heroCopy > * {
+    animation: none;
+  }
+  .btn.btnLg,
+  .btnGhost svg {
+    transition: none;
+  }
 }
 
 .ways {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
-  padding-block: 44px 8px;
+  padding-block: 52px 8px;
 }
 .way {
   border-top: 1px solid var(--line);
