@@ -15,7 +15,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { ITEMS, type ItemId } from "@/lib/items";
 import { heroReducer, initialHero, modeOf, shownOf } from "./heroState";
 import ItemCard from "./ItemCard";
-import type { HeroEngine, ScreenBox } from "./scene/engine";
+import type { HeroEngine } from "./scene/engine";
 import styles from "./Hero3D.module.css";
 
 const ENTER_MS = 90;
@@ -182,11 +182,12 @@ export default function Hero3D() {
         return;
       }
       const cur = stateRef.current.hover;
-      if (cur && insideCard(e.clientX, e.clientY)) {
+      const id = eng.pick(e.clientX, e.clientY);
+      // On the card with no other item under the pointer: keep the current item.
+      if (cur && (!id || id === cur) && insideCard(e.clientX, e.clientY)) {
         cancelLeave();
         return;
       }
-      const id = eng.pick(e.clientX, e.clientY);
       stage.style.cursor = id ? "pointer" : "default";
       if (id && id === cur) cancelLeave();
       zone(id);
@@ -265,7 +266,6 @@ export default function Hero3D() {
       if (dotRef.current) dotRef.current.style.opacity = "0";
       return;
     }
-    const overlaps = (a: { l: number; r: number; t: number; b: number }, b: ScreenBox) => a.l < b.right && a.r > b.left && a.t < b.bottom && a.b > b.top;
     const off = eng.onFrame(() => {
       const stage = stageRef.current,
         pos = cardPosRef.current,
@@ -285,21 +285,36 @@ export default function Hero3D() {
       const pw = pos.offsetWidth,
         ph = pos.offsetHeight;
       const others = ITEMS.filter((i) => i.id !== shown).map((i) => eng.box(i.id));
-      // Preferred: above the item.
-      let x = Math.max(16, Math.min(W - pw - 16, me.anchorX - pw / 2 + (W / 2 - me.anchorX) * 0.12));
-      let y = me.anchorY - ph - 42;
-      let rect = { l: x, r: x + pw, t: y, b: y + ph };
-      let side: "above" | "left" | "right" = "above";
-      if (y < 16 || others.some((o) => overlaps(rect, o))) {
-        // Flip to whichever side has more room.
-        const roomR = W - me.right,
-          roomL = me.left;
-        side = roomR >= roomL ? "right" : "left";
-        x = side === "right" ? me.right + 28 : me.left - 28 - pw;
-        x = Math.max(16, Math.min(W - pw - 16, x));
-        y = Math.max(16, Math.min(H - ph - 84, me.anchorY - ph * 0.45));
-        rect = { l: x, r: x + pw, t: y, b: y + ph };
+      const area = (l: number, t: number) =>
+        others.reduce((sum, o) => {
+          const w = Math.max(0, Math.min(l + pw, o.right) - Math.max(l, o.left));
+          const hh = Math.max(0, Math.min(t + ph, o.bottom) - Math.max(t, o.top));
+          return sum + w * hh;
+        }, 0);
+      const clampX = (v: number) => Math.max(16, Math.min(W - pw - 16, v));
+      const clampY = (v: number) => Math.max(16, Math.min(H - ph - 84, v));
+      const aboveY = clampY(me.anchorY - ph - 42);
+      const sideY = clampY(me.anchorY - ph * 0.45);
+      // Candidates in order of preference; the one covering the least of other items wins.
+      const cands: { x: number; y: number; side: "above" | "left" | "right" }[] = [
+        { x: clampX(me.anchorX - pw / 2), y: aboveY, side: "above" },
+        { x: clampX(me.anchorX - pw + 48), y: aboveY, side: "above" },
+        { x: clampX(me.anchorX - 48), y: aboveY, side: "above" },
+        { x: clampX(me.right + 28), y: sideY, side: "right" },
+        { x: clampX(me.left - 28 - pw), y: sideY, side: "left" },
+      ];
+      let pick = cands[0],
+        bestA = Infinity;
+      for (const c of cands) {
+        // Never cover the item itself.
+        const selfHit = c.x < me.right && c.x + pw > me.left && c.y + ph > me.anchorY + 24 && c.y < me.bottom;
+        const a = area(c.x, c.y) + (selfHit ? 1e9 : 0);
+        if (a < bestA - 1) {
+          bestA = a;
+          pick = c;
+        }
       }
+      const { x, y, side } = pick;
       pos.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
       const ex = side === "above" ? Math.max(x + 28, Math.min(x + pw - 28, me.anchorX)) : side === "right" ? x : x + pw;
       const ey = side === "above" ? y + ph : Math.max(y + 28, Math.min(y + ph - 28, me.anchorY));

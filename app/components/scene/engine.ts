@@ -8,8 +8,8 @@ import { ease, LIFT, LIFT_MS } from "./motion";
  * The 3D stage. It only draws: it never decides what is selected.
  * The React component owns selection and tells the stage what to show via setShown().
  *
- * Hit-testing uses invisible, fixed "columns" (one per item) that never move with
- * the lift animation, so the thing under a still cursor never changes.
+ * Hit-testing uses fixed screen zones (one per item) that never move with the lift
+ * animation, so the thing under a still cursor never changes.
  */
 
 type Slot = { x: number; z: number; h: number; r: number };
@@ -38,7 +38,6 @@ type Obj = {
   holder: THREE.Group;
   model: THREE.Group;
   plinth: THREE.Group;
-  proxy: THREE.Mesh;
   top: number;
   slot: Slot;
   lift: { from: number; to: number; start: number };
@@ -73,8 +72,6 @@ export class HeroEngine {
   private camBase = new THREE.Vector3();
   private camTarget = new THREE.Vector3();
   private lookAt = new THREE.Vector3();
-  private ray = new THREE.Raycaster();
-  private ndc = new THREE.Vector2();
   private v = new THREE.Vector3();
   private t0 = performance.now();
   private ro: ResizeObserver;
@@ -150,16 +147,53 @@ export class HeroEngine {
     }
   }
 
-  /** Which item's column is under this screen point (stable, ignores animation). */
+  /**
+   * Which item is under this screen point. Each item owns a fixed screen zone: its resting
+   * plinth + item, plus the lifted height, padded so neighbours meet. Where zones overlap
+   * (e.g. two rows on phones) the item whose centre is nearest wins. Lifting, bobbing and
+   * the card never change the answer, so a still cursor always gets the same item.
+   */
   pick(clientX: number, clientY: number): ItemId | null {
     const r = this.container.getBoundingClientRect();
-    this.ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
-    this.ray.setFromCamera(this.ndc, this.camera);
-    const hits = this.ray.intersectObjects(
-      ITEMS.map((i) => this.objs[i.id].proxy),
-      false,
-    );
-    return hits.length ? (hits[0].object.userData.id as ItemId) : null;
+    const x = clientX - r.left,
+      y = clientY - r.top;
+    let best: ItemId | null = null;
+    let bestD = Infinity;
+    const boxes = ITEMS.map((it) => ({ id: it.id, b: this.restBox(it.id) }));
+    for (const { id, b } of boxes) {
+      const padX = this.narrow ? 14 : 34,
+        padTop = 26,
+        padBottom = 14;
+      if (x < b.left - padX || x > b.right + padX || y < b.top - padTop || y > b.bottom + padBottom) continue;
+      const cx = (b.left + b.right) / 2,
+        cy = (b.top + b.bottom) / 2;
+      const d = this.narrow ? Math.hypot(x - cx, (y - cy) * 1.2) : Math.abs(x - cx);
+      if (d < bestD) {
+        bestD = d;
+        best = id;
+      }
+    }
+    return best;
+  }
+
+  /** Item + plinth at rest, extended upward by the lift so the target never moves. */
+  private restBox(id: ItemId) {
+    const o = this.objs[id];
+    const { x, z, h, r } = o.slot;
+    const sc = o.model.scale.x;
+    const top = h + o.top * sc + LIFT + 0.1;
+    const pts = [
+      [x - r, 0, z + r * 0.6],
+      [x + r, 0, z + r * 0.6],
+      [x - r * 0.8, top, z],
+      [x + r * 0.8, top, z],
+    ].map(([a, b, c]) => this.project(a, b, c));
+    return {
+      left: Math.min(...pts.map((p) => p.x)),
+      right: Math.max(...pts.map((p) => p.x)),
+      top: Math.min(...pts.map((p) => p.y)),
+      bottom: Math.max(...pts.map((p) => p.y)),
+    };
   }
 
   /** Screen box of an item at rest plus its current anchor (top of the item). */
@@ -248,7 +282,6 @@ export class HeroEngine {
       plush: () => makeBear(T),
       phones: () => makePhones(T),
     };
-    const proxyMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, colorWrite: false });
     ITEMS.forEach((it, idx) => {
       const holder = new THREE.Group();
       const plinth = makePedestal(1, 1, PLINTH[it.id]);
@@ -264,17 +297,12 @@ export class HeroEngine {
         }
       });
       holder.add(model);
-      const proxy = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 24, 1, false), proxyMat);
-      proxy.userData.id = it.id;
-      proxy.renderOrder = -1;
-      holder.add(proxy);
       this.scene.add(holder);
       this.objs[it.id] = {
         id: it.id,
         holder,
         model,
         plinth,
-        proxy,
         top: inner.userData.top,
         slot: WIDE[it.id],
         lift: { from: 0, to: 0, start: 0 },
@@ -342,11 +370,6 @@ export class HeroEngine {
       (o.plinth.userData.ring as THREE.Mesh).position.y = s.h + 0.004;
       const sc = SCALE[it.id] * (this.narrow ? 0.85 : 1);
       o.model.scale.setScalar(sc);
-      // Fixed hit column: covers plinth + item at rest and lifted. Wide enough that neighbours meet.
-      const colH = s.h + o.top * sc + LIFT + 0.7;
-      const colR = this.narrow ? 1.05 : Math.max(s.r, 1.2);
-      o.proxy.scale.set(colR, colH, colR);
-      o.proxy.position.set(0, colH / 2, 0);
     }
   }
 
@@ -358,11 +381,12 @@ export class HeroEngine {
     this.camera.aspect = W / H;
     this.layout();
     const pitch = this.opts.mode === "pitch";
-    const span = this.narrow ? 6.6 : pitch ? 16.8 : 17.6;
+    const span = this.narrow ? 6.6 : pitch ? 19.5 : 17.6;
     const hf = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) * this.camera.aspect);
     const dist = span / 2 / Math.tan(hf / 2);
     this.camBase.set(0, this.narrow ? 5.4 : 4.4, Math.max(dist, this.narrow ? 10 : 11));
-    this.lookAt.set(0, this.narrow ? 1.7 : pitch ? 2.2 : 2.6, this.narrow ? -0.5 : -0.2);
+    // Items sit in the lower part of the frame, leaving open sky above for the card.
+    this.lookAt.set(0, this.narrow ? 1.7 : pitch ? 3.9 : 3.2, this.narrow ? -0.5 : -0.2);
     this.camTarget.copy(this.camBase);
     this.camera.position.copy(this.camBase);
     this.camera.lookAt(this.lookAt);

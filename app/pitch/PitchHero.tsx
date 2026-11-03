@@ -78,10 +78,16 @@ export default function PitchHero() {
       const b = eng.box(item.id);
       const pw = el.offsetWidth,
         ph = el.offsetHeight;
-      const right = W - b.right >= b.left;
-      let x = right ? b.right + 48 : b.left - 48 - pw;
-      x = Math.max(32, Math.min(W - pw - 32, x));
-      const y = Math.max(32, Math.min(H - ph - 96, b.anchorY - ph * 0.5));
+      // Card sits in the open sky above the item, nudged toward the centre.
+      let x = Math.max(32, Math.min(W - pw - 32, b.anchorX - pw / 2 + (W / 2 - b.anchorX) * 0.15));
+      let y = b.anchorY - ph - 44;
+      if (y < 24) {
+        // Too tall to fit above (the exploded badge): sit beside it, top-aligned, on the roomier side.
+        const right = W - b.right >= b.left;
+        x = Math.max(32, Math.min(W - pw - 32, right ? b.right + 40 : b.left - 40 - pw));
+        y = 24;
+      }
+      y = Math.min(H - ph - 96, y);
       el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
     });
   }, [item, ready]);
@@ -99,7 +105,7 @@ export default function PitchHero() {
       {slide === 0 && (
         <section className={`${styles.overlay} ${styles.intro}`} key="intro">
           <div className={styles.eyebrow}>For autistic and neurodivergent kids</div>
-          <h1>One profile. Everything they love.</h1>
+          <h2>One profile. Everything they love.</h2>
           <p>Not a wrist kid? No problem. IntroBand goes on what they already keep, and anyone can tap, scan or type to meet them.</p>
         </section>
       )}

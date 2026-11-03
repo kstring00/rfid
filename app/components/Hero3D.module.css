@@ -3,7 +3,7 @@
 }
 .stage {
   position: relative;
-  height: clamp(480px, 50vw, 680px);
+  height: clamp(520px, 56vw, 740px);
   border-radius: 28px;
   overflow: hidden;
   isolation: isolate;

@@ -53,7 +53,7 @@
   color: var(--sage);
   font-weight: 700;
 }
-.intro h1 {
+.intro h2 {
   font-family: var(--display);
   font-weight: 600;
   font-size: clamp(44px, 6vw, 88px);
