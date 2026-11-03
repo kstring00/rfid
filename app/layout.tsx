@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     "IntroBand puts your child's introduction on the shoe, bag, toy or headphones they never leave behind. Anyone can tap or scan to meet them. No app needed.",
   openGraph: {
-    title: "IntroBand™ | One profile. Everything they love.",
+    title: "IntroBand™ | Let the things they love introduce them.",
     description: "Tap-to-meet NFC and QR tags for autistic and neurodivergent kids. Join the waitlist for the starter kit.",
     url: site,
     siteName: "IntroBand",
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Figtree:wght@400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Figtree:wght@400;500;600;700;800&display=swap"
         />
       </head>
       <body>{children}</body>

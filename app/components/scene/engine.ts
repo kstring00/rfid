@@ -50,6 +50,8 @@ export type EngineOptions = {
   mode: "page" | "pitch";
   reducedMotion: boolean;
   onFirstFrame?: () => void;
+  /** Page mode: px at the top of the stage covered by the hero copy. Items are framed below it. */
+  reserveTop?: () => number;
 };
 
 export class HeroEngine {
@@ -355,10 +357,17 @@ export class HeroEngine {
     );
   }
 
+  /** Height of the part of the stage that is free for the items. */
+  private itemsHeight() {
+    const H = this.container.clientHeight;
+    const reserve = this.opts.mode === "page" && this.opts.reserveTop ? Math.max(0, this.opts.reserveTop()) : 0;
+    return { H, reserve: Math.min(reserve, H * 0.7) };
+  }
+
   private layout() {
-    const W = this.container.clientWidth,
-      H = this.container.clientHeight;
-    this.narrow = W / H < 1.05;
+    const W = this.container.clientWidth;
+    const { H, reserve } = this.itemsHeight();
+    this.narrow = W / (H - reserve) < 1.05;
     const P = this.narrow ? NARROW : WIDE;
     for (const it of ITEMS) {
       const o = this.objs[it.id];
@@ -387,6 +396,19 @@ export class HeroEngine {
     this.camBase.set(0, this.narrow ? 5.4 : 4.4, Math.max(dist, this.narrow ? 10 : 11));
     // Items sit in the lower part of the frame, leaving open sky above for the card.
     this.lookAt.set(0, this.narrow ? 1.7 : pitch ? 3.9 : 3.2, this.narrow ? -0.5 : -0.2);
+    const { reserve } = this.itemsHeight();
+    if (this.opts.mode === "page" && !this.narrow) {
+      // On the page the item card never needs open sky (it docks beside the hero copy, or sits
+      // below the stage), so aim for the row of items centred between the copy and the selector.
+      const SELECTOR = 72;
+      const targetY = reserve + (H - reserve - SELECTOR) * (reserve > 0 ? 0.5 : 0.6);
+      const s = (targetY / H - 0.5) * 2; // NDC offset, positive = below centre
+      const half = Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2);
+      const P = { y: 1.15, z: -0.2 };
+      const aP = Math.atan2(P.y - this.camBase.y, this.camBase.z - P.z);
+      const aL = aP + Math.atan(s * half);
+      this.lookAt.y = this.camBase.y + Math.tan(aL) * (this.camBase.z - this.lookAt.z);
+    }
     this.camTarget.copy(this.camBase);
     this.camera.position.copy(this.camBase);
     this.camera.lookAt(this.lookAt);
