@@ -1,0 +1,197 @@
+.root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  color: var(--ink);
+  background:
+    radial-gradient(55% 65% at 75% 12%, rgba(255, 214, 150, 0.9) 0%, rgba(255, 214, 150, 0) 60%),
+    radial-gradient(90% 60% at 50% 105%, #edd2ae 0%, rgba(237, 210, 174, 0) 70%),
+    linear-gradient(180deg, #fbefdc 0%, #f6e3c8 55%, #f0d6b4 100%);
+}
+.stage {
+  position: absolute;
+  inset: 0;
+}
+.sun {
+  position: absolute;
+  width: 40vw;
+  aspect-ratio: 1;
+  right: 8vw;
+  top: -14vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 236, 200, 0.95) 0%, rgba(255, 221, 166, 0.35) 40%, rgba(255, 221, 166, 0) 70%);
+  z-index: -1;
+}
+.brand {
+  position: absolute;
+  top: max(28px, env(safe-area-inset-top, 0px));
+  left: max(36px, env(safe-area-inset-left, 0px));
+  font-weight: 600;
+  font-size: 20px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.brand b {
+  color: var(--sun-deep);
+  font-size: 22px;
+}
+.overlay {
+  position: absolute;
+  z-index: 3;
+  animation: fadeUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.intro {
+  top: 13vh;
+  left: max(36px, env(safe-area-inset-left, 0px));
+  max-width: min(760px, 70vw);
+}
+.eyebrow {
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sage);
+  font-weight: 700;
+}
+.intro h1 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(44px, 6vw, 88px);
+  line-height: 1;
+  letter-spacing: -0.015em;
+  margin: 12px 0 16px;
+  text-wrap: balance;
+}
+.intro p {
+  font-size: clamp(18px, 1.6vw, 24px);
+  color: var(--ink-soft);
+  max-width: 44ch;
+  margin: 0;
+}
+.final {
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: 0 24px 8vh;
+  background: rgba(253, 247, 238, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.final h2 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(40px, 5vw, 76px);
+  line-height: 1.04;
+  margin: 0 auto 18px;
+  max-width: 16ch;
+  text-wrap: balance;
+}
+.count {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 28px;
+}
+.count strong {
+  font-family: var(--display);
+  font-size: clamp(64px, 9vw, 140px);
+  line-height: 0.9;
+  color: var(--sage);
+  font-variant-numeric: tabular-nums;
+}
+.count span {
+  font-size: 18px;
+  color: var(--ink-soft);
+}
+.url {
+  font-size: clamp(22px, 2.2vw, 32px);
+  font-weight: 700;
+  color: var(--sage);
+  margin: 0 0 8px;
+}
+.small {
+  color: var(--ink-soft);
+  font-size: 16px;
+  margin: 0;
+}
+.cardPos {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: min(460px, 42vw);
+  will-change: transform;
+  pointer-events: none;
+}
+.nav {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: max(26px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(255, 250, 242, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px -12px rgba(110, 70, 30, 0.35);
+}
+.nav button {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 0;
+  background: #fff;
+  color: var(--ink);
+  font-size: 16px;
+  cursor: pointer;
+}
+.nav button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.nav button:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 2px;
+}
+.dots {
+  display: flex;
+  gap: 7px;
+}
+.dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(31, 46, 38, 0.2);
+  transition: width 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.dots .dotOn {
+  width: 22px;
+  border-radius: 999px;
+  background: var(--sage);
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation: none;
+  }
+}

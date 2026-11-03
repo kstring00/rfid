@@ -185,9 +185,11 @@ export class HeroEngine {
     };
   }
 
-  onFrame(cb: () => void) {
+  onFrame(cb: () => void): () => void {
     this.frameListeners.add(cb);
-    return () => this.frameListeners.delete(cb);
+    return () => {
+      this.frameListeners.delete(cb);
+    };
   }
 
   get isNarrow() {
