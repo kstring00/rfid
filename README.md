@@ -28,3 +28,13 @@ Until those are set, the form shows "The waitlist isn't connected yet."
 ## Swap in more Higgsfield models
 Drop a `.glb` in `public/models/`, then load it the same way `loadRealShoe` does in `Hero3D.tsx`.
 Compress big models first: `npx @gltf-transform/cli resize in.glb out.glb --width 1024 --height 1024`.
+
+## Pitch mode
+Open `/pitch` full screen. Arrow keys, Space, Page Up/Down (most presentation clickers) move through:
+intro → six items → waitlist. The waitlist count appears on the last slide once there are 25+ signups.
+
+## How the hero works
+- `app/components/heroState.ts` — selection state machine (idle, hovering, pinned, touring)
+- `app/components/scene/engine.ts` — three.js stage, loaded lazily; fixed screen zones for hit-testing
+- `app/components/scene/motion.ts` — the one easing curve and lift values
+- Add `?debug` to the URL to expose `window.__hero` for automated tests
