@@ -1,14 +1,17 @@
 :root {
-  --forest: #111d17;
-  --forest-2: #19291f;
-  --moss: #2f4a3c;
-  --cream: #f1ead9;
-  --cream-dim: #c4bfae;
-  --leaf: #7fd39a;
-  --line: rgba(241, 234, 217, 0.14);
+  /* Warm, sunlit palette */
+  --paper: #fdf7ee;
+  --paper-2: #f6ead8;
+  --ink: #1f2e26;
+  --ink-soft: #5d5a4c;
+  --sage: #2f6b48;
+  --sage-deep: #234f36;
+  --sun: #f4b266;
+  --sun-deep: #e89240;
+  --line: rgba(31, 46, 38, 0.12);
   --display: "Fraunces", Georgia, "Times New Roman", serif;
   --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
-  color-scheme: dark;
+  color-scheme: light;
 }
 * {
   box-sizing: border-box;
@@ -16,8 +19,8 @@
 html,
 body {
   margin: 0;
-  background: var(--forest);
-  color: var(--cream);
+  background: var(--paper);
+  color: var(--ink);
 }
 body {
   font-family: var(--body);
@@ -26,7 +29,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 a {
-  color: var(--leaf);
+  color: var(--sage);
 }
 img {
   max-width: 100%;
@@ -50,33 +53,33 @@ img {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--cream);
+  color: var(--ink);
   text-decoration: none;
 }
 .brand b {
-  color: var(--leaf);
+  color: var(--sun-deep);
   font-size: 20px;
   line-height: 1;
 }
 .navcta {
   font-weight: 700;
   font-size: 14px;
-  color: var(--forest);
-  background: var(--leaf);
+  color: #fff8ec;
+  background: var(--ink);
   border-radius: 999px;
-  padding: 9px 16px;
+  padding: 10px 18px;
   text-decoration: none;
 }
 .navcta:focus-visible,
 .btn:focus-visible {
-  outline: 3px solid var(--cream);
+  outline: 3px solid var(--sun-deep);
   outline-offset: 2px;
 }
 .eyebrow {
   font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--leaf);
+  color: var(--sage);
   font-weight: 700;
 }
 h1 {
@@ -89,7 +92,7 @@ h1 {
   text-wrap: balance;
 }
 .sub {
-  color: var(--cream-dim);
+  color: var(--ink-soft);
   margin: 0;
   max-width: 52ch;
   font-size: 17px;
@@ -117,13 +120,13 @@ h1 {
 }
 .way p {
   margin: 0;
-  color: var(--cream-dim);
+  color: var(--ink-soft);
   font-size: 15px;
   max-width: 34ch;
 }
 .way code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  color: var(--leaf);
+  color: var(--sage);
   font-size: 14px;
 }
 @media (max-width: 760px) {
@@ -148,15 +151,16 @@ h1 {
   text-wrap: balance;
 }
 .lede {
-  color: var(--cream-dim);
+  color: var(--ink-soft);
   margin: 0;
   max-width: 44ch;
 }
 .form {
-  background: var(--forest-2);
+  background: #fffaf2;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 24px 60px -30px rgba(110, 70, 30, 0.35);
   display: grid;
   gap: 14px;
 }
@@ -170,22 +174,22 @@ h1 {
   width: 100%;
   margin-top: 6px;
   font: inherit;
-  color: var(--cream);
-  background: var(--forest);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid rgba(31, 46, 38, 0.18);
+  border-radius: 12px;
   padding: 11px 12px;
 }
 .form input:focus-visible,
 .form select:focus-visible {
-  outline: 2px solid var(--leaf);
+  outline: 2px solid var(--sage);
   outline-offset: 1px;
 }
 .btn {
   font: inherit;
   font-weight: 700;
-  background: var(--leaf);
-  color: var(--forest);
+  background: var(--sage);
+  color: #fff8ec;
   border: 0;
   border-radius: 999px;
   padding: 13px 18px;
@@ -197,17 +201,17 @@ h1 {
 }
 .ok {
   font-size: 14px;
-  color: var(--leaf);
+  color: var(--sage);
   margin: 0;
 }
 .err {
   font-size: 14px;
-  color: #f0cf8a;
+  color: #9a4a12;
   margin: 0;
 }
 .fine {
   font-size: 12.5px;
-  color: var(--cream-dim);
+  color: var(--ink-soft);
   margin: 0;
 }
 @media (max-width: 760px) {
@@ -218,7 +222,7 @@ h1 {
 footer.foot {
   border-top: 1px solid var(--line);
   padding-block: 20px 28px;
-  color: var(--cream-dim);
+  color: var(--ink-soft);
   font-size: 13px;
   display: flex;
   flex-wrap: wrap;
@@ -240,5 +244,11 @@ footer.foot {
 }
 .prose p,
 .prose li {
-  color: var(--cream-dim);
+  color: var(--ink-soft);
+}
+.btn:hover {
+  background: var(--sage-deep);
+}
+.navcta:hover {
+  background: #33463b;
 }

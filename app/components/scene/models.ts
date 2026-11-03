@@ -477,3 +477,42 @@ export function makeFlies() {
   geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
   return new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffd98a, size: 0.06, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false }));
 }
+
+/** A soft, rounded display plinth. Top surface sits at y = height. */
+export function makePedestal(radius: number, height: number, color: THREE.ColorRepresentation) {
+  const g = new THREE.Group();
+  const r = radius,
+    b = 0.08;
+  const pts = [
+    new THREE.Vector2(0, 0),
+    new THREE.Vector2(r * 1.04, 0),
+    new THREE.Vector2(r * 1.06, 0.03),
+    new THREE.Vector2(r, height - b),
+    new THREE.Vector2(r - b * 0.3, height - b * 0.3),
+    new THREE.Vector2(r - b, height),
+    new THREE.Vector2(0, height),
+  ];
+  const body = new THREE.Mesh(new THREE.LatheGeometry(pts, 96), M(color, { roughness: 0.62, bumpMap: noiseTex(0.25), bumpScale: 0.004 }));
+  body.castShadow = true;
+  body.receiveShadow = true;
+  g.add(body);
+  // Glow ring on the top edge, brightened when the item is chosen.
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(r - b * 0.6, 0.012, 8, 96),
+    new THREE.MeshBasicMaterial({ color: new THREE.Color("#ffb766"), transparent: true, opacity: 0 }),
+  );
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = height + 0.004;
+  g.add(ring);
+  g.userData.ring = ring;
+  g.userData.height = height;
+  return g;
+}
+
+/** Invisible floor that only shows shadows, so the scene floats on the page color. */
+export function makeShadowCatcher() {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(60, 30), new THREE.ShadowMaterial({ color: new THREE.Color("#6b4a2a"), opacity: 0.22 }));
+  m.rotation.x = -Math.PI / 2;
+  m.receiveShadow = true;
+  return m;
+}
